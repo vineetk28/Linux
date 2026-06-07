@@ -1,0 +1,106 @@
+Linux cgroups are used to limit resource consumption ( like CPU, Memory) 
+by a process or processes on Linux.
+
+Def:
+Control groups, usually referred to as cgroups, are a Linux
+kernel feature which allow processes to be organized into
+hierarchical groups whose usage of various types of resources can then be limited and monitored.
+
+
+
+Uses of cgroups:
+
+Protect the system from a resource-hungry process
+Ensure fair resource distribution among multiple applications
+Test application performance under constrained resources
+Guarantee resource availability in multi-tenant environments
+
+How to added processes in cgroups:
+1. Manipulating the virtual filesystem cgroupfs
+2. Using libcgroup
+
+Manipulating the virtual filesystem cgroupfs:
+
+cgroupfs is a pseudo filesystem
+
+On modern Linux distributions, this pseudo-filesystem is usually mounted at /sys/fs/cgroup
+
+To create a new cgroup, just create a new subfolder under /sys/fs/cgroup
+
+mkdir /sys/fs/cgroup/newcgroup
+
+This newly created sub folder gets automatically populated with multiple files like given below:
+
+cgroup.controllers      io.max
+cgroup.events           io.stat
+cgroup.freeze           memory.current
+cgroup.max.depth        memory.events
+cgroup.max.descendants  memory.events.local
+cgroup.procs            memory.high
+cgroup.stat             memory.low
+cgroup.subtree_control  memory.max
+cgroup.threads          memory.min
+cgroup.type             memory.numa_stat
+cpu.max                 memory.oom.group
+cpu.stat                memory.stat
+
+
+To limit CPU usage to 50%, run below command:
+echo "50000 100000" > /sys/fs/cgroup/newcgroup/cpu.max
+
+To limit memory to 100M, run below command:
+echo "100M" > /sys/fs/cgroup/newcgroup/memory.max
+
+Now, if we run a process, which we want to apply the just created limits, run below command:
+
+PROC_PID=$(pgrep -xo <processname>)
+
+echo ${PROC_PID} >> /sys/fs/cgroup/newcgroup/cgroup.procs
+
+Now, this process , will be OOM killed if it exceeds the memory limit.
+
+
+To move the current shell process to the cgroup, run below command:
+
+echo $$ >> /sys/fs/cgroup/newcgroup/cgroup.procs
+
+
+To remove the cgroup, run below command:
+
+rmdir /sys/fs/cgroup/newcgroup
+
+---
+Using libcgroup:
+
+Run below command to install necessary tools:
+apt-get install cgroup-tools
+
+To create new cgroup
+
+cgcreate -g cpu,memory:/process_cg
+
+To limit CPU and Memory
+
+cgset -r cpu.max="50000 100000" process_cg
+
+cgset -r memory.max="100M" process_cg
+
+
+Now start the process ( for which limits need to be applied)
+
+~/process
+
+Now move it to the just created cgroup:
+
+PROCESS_PID=$(pgrep -xo process)
+
+cgclassify -g cpu,memory:process_cg ${PROCESS_PID}
+
+NOTE: We can start the process in the desired cgroup, from the
+beginning as
+cgexec -g cpu,memory:process_cg ~/process
+
+
+To delete the cgroup, run below command:
+cgdelete -g cpu,memory:/process_cg
+
