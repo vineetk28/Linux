@@ -46,16 +46,16 @@ cpu.stat                memory.stat
 
 
 To limit CPU usage to 50%, run below command:
-echo "50000 100000" > /sys/fs/cgroup/newcgroup/cpu.max
+echo "50000 100000" | sudo tee /sys/fs/cgroup/newcgroup/cpu.max
 
 To limit memory to 100M, run below command:
-echo "100M" > /sys/fs/cgroup/newcgroup/memory.max
+echo "100M" | sudo tee /sys/fs/cgroup/newcgroup/memory.max
 
 Now, if we run a process, which we want to apply the just created limits, run below command:
 
 PROC_PID=$(pgrep -xo <processname>)
 
-echo ${PROC_PID} >> /sys/fs/cgroup/newcgroup/cgroup.procs
+echo ${PROC_PID} | sudo tee /sys/fs/cgroup/newcgroup/cgroup.procs
 
 Now, this process , will be OOM killed if it exceeds the memory limit.
 
