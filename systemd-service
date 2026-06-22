@@ -1,0 +1,35 @@
+A binary file can run a process in foreground by simply
+running the executable.
+
+However, it will be unreliable, in the sense that if terminal
+closes, the process will also close. Also , upon system reboot
+the process won't come up automatically.
+
+That's why we wrap the binary into a systemd service named like
+xyz.service
+
+The file xyz.service resides in /etc/systemd/system/xyz.service
+
+This file xyz.service is called Unit File.
+
+It can be something like this:
+
+[Unit]
+Description=xyz
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/xyz
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+
+---
+After it is created , it needs to be enabled via:
+
+sudo systemctl enable xyz.service
+
+Now, after a system reboot, the process will start 
+automatically.
