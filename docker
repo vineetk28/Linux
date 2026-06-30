@@ -1,0 +1,37 @@
+When you run a container using the docker run <image> command without any additional flags, the container starts in the 
+ foreground - the command blocks the terminal session and the container's stdout and stderr streams starts being written to the console.
+
+docker run imagename --detach -> This command runs the container in background
+
+To attach a detached container , to the terminal. Run below command:
+
+docker attach containerID
+
+When we run docker run imagename, it runs the default command configured in the image.
+However, we can run a custom command as shown below:
+docker run redis >> This runs the redis-server
+
+docker run redis redis-cli --version  >> This run redis-cli --version command.
+
+docker run redis redis-cli -h redisserverIP ping >> This will ping a running redis server and should return PONG
+
+( The advantage of being able to run custom commands from the container is that we dont need to install cli tools locally and can 
+leverage the power of container )
+
+cat ~/avatar.png | docker run -i redis redis-cli -h 172.16.0.3 -p 6379 -x set avatar:user123
+
+Here the -i flag tells the docker run command to keep the container's STDIN open. This is essential when piping data from the Docker host into a containerized command.
+
+
+Note:
+The -i and -t flags are often used together. For instance, this command starts an interactive client connected to a remote Redis server:
+
+docker run -it redis redis-cli -h 172.16.0.3
+
+However, the -t flag cannot be used in scripts. This flag tells Docker to allocate a pseudo-TTY for the container, which is great and often desired when the container is started from an interactive shell (e.g., in a local terminal or via an SSH session), but fails with the following error when the container is started from a script:
+
+the input device is not a TTY
+
+
+
+-t allocates a pseudo-TTY (a terminal device). -i keeps STDIN open and connected to the container even when not attached, making it interactive.
